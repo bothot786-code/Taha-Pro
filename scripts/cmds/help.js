@@ -1,145 +1,133 @@
-const fs = require("fs-extra");
-const path = require("path");
-const https = require("https");
+const { getPrefix, getStreamFromURL } = global.utils;
+const { commands, aliases } = global.GoatBot;
+const axios = require("axios");
+
+const gifURLs = [
+  "https://i.imgur.com/Xw6JTfn.gif",
+  "https://i.imgur.com/mW0yjZb.gif",
+  "https://i.imgur.com/KQBcxOV.gif"
+];
+
+// Random GIF stream fetch karne ka function
+async function getRandomGifStream() {
+  try {
+    const randomGif = gifURLs[Math.floor(Math.random() * gifURLs.length)];
+    if (getStreamFromURL) {
+      return await getStreamFromURL(randomGif);
+    }
+    const res = await axios.get(randomGif, { responseType: "stream" });
+    return res.data;
+  } catch (err) {
+    console.error("GIF Load Error:", err.message);
+    return null;
+  }
+}
 
 module.exports = {
   config: {
     name: "help",
-    aliases: ["menu", "commands"],
-    version: "6.4",
-    author: "EryXenX",
-    shortDescription: "Show all commands",
-    longDescription: "Show all commands in clean UI",
+    aliases: ["menu", "cmdslist"],
+    version: "2.6.0",
+    author: "𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍",
+    countDown: 3,
+    role: 0,
+    description: "Khoobsurat aur VIP Command Menu System (GIF Support)",
     category: "system",
-    guide: "{pn}help [command name]"
+    guide: "{pn} [command ka naam]",
+    priority: 1
   },
 
-  onStart: async function ({ message, args, prefix }) {
-    const allCommands = global.GoatBot.commands;
+  onStart: async function ({ message, args, event, role, api }) {
+    const { threadID, messageID } = event;
+    const prefix = getPrefix(threadID);
 
-    const fancyFont = (str) =>
-      str.replace(/[A-Za-z]/g, (c) => {
-        const map = {
-          A:"𝐀",B:"𝐁",C:"𝐂",D:"𝐃",E:"𝐄",F:"𝐅",G:"𝐆",H:"𝐇",
-          I:"𝐈",J:"𝐉",K:"𝐊",L:"𝐋",M:"𝐌",N:"𝐍",O:"𝐎",P:"𝐏",
-          Q:"𝐐",R:"𝐑",S:"𝐒",T:"𝐓",U:"𝐔",V:"𝐕",W:"𝐖",X:"𝐗",
-          Y:"𝐘",Z:"𝐙",
-          a:"𝐚",b:"𝐛",c:"𝐜",d:"𝐝",e:"𝐞",f:"𝐟",g:"𝐠",h:"𝐡",
-          i:"𝐢",j:"𝐣",k:"𝐤",l:"𝐥",m:"𝐦",n:"𝐧",o:"𝐨",p:"𝐩",
-          q:"𝐪",r:"𝐫",s:"𝐬",t:"𝐭",u:"𝐮",v:"𝐯",w:"𝐰",x:"𝐱",
-          y:"𝐲",z:"𝐳"
-        };
-        return map[c] || c;
+    if (api.setMessageReaction) api.setMessageReaction("⚡", messageID, () => {}, true);
+
+    if (args.length === 0) {
+      const categories = {};
+
+      for (const [name, value] of commands) {
+        if (value.config.role > 0 && role < value.config.role) continue;
+        const catName = (value.config.category || "GENERAL").toUpperCase();
+        if (!categories[catName]) categories[catName] = [];
+        if (!categories[catName].includes(name)) categories[catName].push(name);
+      }
+
+      let menu = `╔═════════════════════════╗\n`;
+      menu += `║    ⚡ 𝗧𝗔𝗛𝗔 𝗕𝗢𝗧 ⚡    ║\n`;
+      menu += `╠═════════════════════════╣\n`;
+      menu += `║ 👑 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗘𝗥 : 𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍\n`;
+      menu += `║ ⚙️ 𝗙𝗥𝗔𝗠𝗘𝗪𝗢𝗥𝗞 : 𝗚𝗼𝗮𝘁𝗕𝗼𝘁 𝗩𝟮\n`;
+      menu += `║ 📌 𝗣𝗥𝗘𝗙𝗜𝗫     : [ ${prefix} ]\n`;
+      menu += `╚═════════════════════════╝\n\n`;
+
+      Object.keys(categories).sort().forEach((cat) => {
+        menu += `┌─[ ❖ 𝗖𝗔𝗧𝗘𝗚𝗢𝗥𝗬: ${cat} ]\n`;
+        const cmdsList = categories[cat].sort();
+        
+        for (let i = 0; i < cmdsList.length; i += 3) {
+          const chunk = cmdsList.slice(i, i + 3).map(c => `✧ ${c}`);
+          menu += `│ ${chunk.join("   ")}\n`;
+        }
+        menu += `└─────────────────────────►\n`;
       });
 
-    const categoryFont = (str) =>
-      str.split("").map(c => {
-        const map = {
-          A:"𝐀",B:"𝐁",C:"𝐂",D:"𝐃",E:"𝐄",F:"𝐅",G:"𝐆",H:"𝐇",
-          I:"𝐈",J:"𝐉",K:"𝐊",L:"𝐋",M:"𝐌",N:"𝐍",O:"𝐎",P:"𝐏",
-          Q:"𝐐",R:"𝐑",S:"𝐒",T:"𝐓",U:"𝐔",V:"𝐕",W:"𝐖",X:"𝐗",
-          Y:"𝐘",Z:"𝐙"
-        };
-        return map[c] || c;
-      }).join("");
+      const totalCmds = commands.size;
+      menu += `\n╭─────────────────────────╮\n`;
+      menu += `│ 📊 Total Commands : ${totalCmds}\n`;
+      menu += `│ 💡 Usage : ${prefix}help <command>\n`;
+      menu += `│ 👑 Owner : 𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍\n`;
+      menu += `╰─────────────────────────╯`;
 
-    const cleanCategoryName = (text) => text ? text.toLowerCase() : "others";
+      try {
+        const gifStream = await getRandomGifStream();
+        const msgOptions = { body: menu };
+        if (gifStream) msgOptions.attachment = gifStream;
 
-    if (args[0]) {
-      const cmdName = args[0].toLowerCase();
-      const cmd =
-        allCommands.get(cmdName) ||
-        [...allCommands.values()].find(c => c.config.aliases?.includes(cmdName));
-
-      if (!cmd)
-        return message.reply(
-`❌ ${fancyFont(`Command '${cmdName}' not found!`)}
-➤ Try ${prefix}help to see full list`
-        );
-
-      const usage = typeof cmd.config.guide === "string"
-        ? cmd.config.guide.replace("{pn}", cmd.config.name)
-        : cmd.config.name;
-
-      const infoMsg =
-`┏━━━━━━━━━━━━━┓
- 🧩 𝐂𝐌𝐃 𝐈𝐍𝐅𝐎
-┗━━━━━━━━━━━━━┛
- ✦ Name     : ${cmd.config.name}
- ✦ Aliases  : ${cmd.config.aliases?.join(", ") || "None"}
- ✦ Category : ${categoryFont((cmd.config.category || "Others").toUpperCase())}
- ✦ Version  : v${cmd.config.version || "1.0"}
- ✦ Author   : ${cmd.config.author || "Unknown"}
- ✦ Usage    : ${prefix}${usage}
-━━━━━━━━━━━━━━━
- 📝 ${(cmd.config.longDescription || cmd.config.shortDescription || "No description")}`;
-
-      return message.reply(infoMsg);
-    }
-
-    const categories = {};
-
-    for (const [name, cmd] of allCommands) {
-      const cat = cleanCategoryName(cmd.config.category);
-      if (!categories[cat]) categories[cat] = [];
-      categories[cat].push(name);
-    }
-
-    let msg =
-`╭─ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒 𝐌𝐄𝐍𝐔
-├ Prefix : ${prefix}
-├ Total  : ${allCommands.size}
-├ Author : EryXenX\n`;
-
-    for (const cat of Object.keys(categories).sort()) {
-      const catTitle = categoryFont(cat.toUpperCase());
-      msg += `\n┌─ ${catTitle} ─┐\n`;
-      for (const cmdName of categories[cat].sort()) {
-        msg += `│ ⎙ ${fancyFont(cmdName)}\n`;
+        const sentMsg = await message.reply(msgOptions);
+        if (sentMsg?.messageID) setTimeout(() => message.unsend(sentMsg.messageID), 90000);
+      } catch (err) {
+        console.error("Help menu error:", err);
       }
-      msg += `└─────────────┘\n`;
+    } else {
+      const cmdQuery = args[0].toLowerCase();
+      const command = commands.get(cmdQuery) || commands.get(aliases.get(cmdQuery));
+
+      if (!command) return message.reply(`❌ Aray jani! "${cmdQuery}" naam ki koi command nahi mili.`);
+
+      const cfg = command.config;
+      const getRoleText = (r) => (r === 0 ? "Sab Users (Public)" : r === 1 ? "Group Admin Only" : "Bot Owner (TAHA KHAN)");
+
+      let card = `╔════════ COMMAND CARD ════════╗\n`;
+      card += `║ 🎀 𝗡𝗔𝗠𝗘       : ${cfg.name.toUpperCase()}\n`;
+      card += `║ 🔄 𝗔𝗟𝗜𝗔𝗦𝗘𝗦    : ${cfg.aliases && cfg.aliases.length > 0 ? cfg.aliases.join(", ") : "None"}\n`;
+      card += `║ 📂 𝗖𝗔𝗧𝗘𝗚𝗢𝗥𝗬  : ${(cfg.category || "General").toUpperCase()}\n`;
+      card += `║ 🛡️ 𝗣𝗘𝗥𝗠𝗜𝗦𝗦𝗜𝗢𝗡 : ${getRoleText(cfg.role)}\n`;
+      card += `║ ⏱️ 𝗖𝗢𝗢𝗟𝗗𝗢𝗪𝗡  : ${cfg.countDown || 2}s\n`;
+      card += `╠══════════════════════════════╣\n`;
+      card += `║ 📝 𝗗𝗘𝗦𝗖𝗥𝗜𝗣𝗧𝗜𝗢𝗡 :\n`;
+      card += `║ ${cfg.description?.ur || cfg.description?.en || cfg.description || "No description provided."}\n`;
+      card += `╠══════════════════════════════╣\n`;
+      card += `║ 🚀 𝗨𝗦𝗔𝗚𝗘 :\n`;
+      
+      const usageGuide = (cfg.guide?.ur || cfg.guide?.en || cfg.guide || `{pn} ${cfg.name}`)
+        .replace(/{pn}/g, prefix + cfg.name)
+        .replace(/{p}/g, prefix);
+
+      card += `║ ${usageGuide}\n`;
+      card += `╚══════════════════════════════╝\n`;
+      card += `👑 𝗢𝗪𝗡𝗘𝗥 & 𝗗𝗘𝗩𝗘𝗟𝗢𝗣𝗘𝗥: 𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍`;
+
+      try {
+        const gifStream = await getRandomGifStream();
+        const msgOptions = { body: card };
+        if (gifStream) msgOptions.attachment = gifStream;
+
+        const sentCard = await message.reply(msgOptions);
+        if (sentCard?.messageID) setTimeout(() => message.unsend(sentCard.messageID), 90000);
+      } catch (err) {
+        console.error("Help detail card error:", err);
+      }
     }
-
-    msg += `\n╰─ Use: ${prefix}help <command>`;
-
-    const gifURLs = [
-      "https://i.imgur.com/Xw6JTfn.gif",
-      "https://i.imgur.com/mW0yjZb.gif",
-      "https://i.imgur.com/KQBcxOV.gif"
-    ];
-
-    const randomGifURL = gifURLs[Math.floor(Math.random() * gifURLs.length)];
-    const gifFolder = path.join(__dirname, "cache");
-
-    if (!fs.existsSync(gifFolder))
-      fs.mkdirSync(gifFolder, { recursive: true });
-
-    const gifName = path.basename(randomGifURL);
-    const gifPath = path.join(gifFolder, gifName);
-
-    if (!fs.existsSync(gifPath))
-      await downloadGif(randomGifURL, gifPath);
-
-    return message.reply({
-      body: msg,
-      attachment: fs.createReadStream(gifPath)
-    });
   }
 };
-
-function downloadGif(url, dest) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) {
-        fs.unlink(dest, () => {});
-        return reject();
-      }
-      res.pipe(file);
-      file.on("finish", () => file.close(resolve));
-    }).on("error", (err) => {
-      fs.unlink(dest, () => {});
-      reject(err);
-    });
-  });
-}

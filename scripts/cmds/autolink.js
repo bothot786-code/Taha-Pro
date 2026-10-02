@@ -1,18 +1,14 @@
 const fs = require("fs");
-const path = require("path");
-const os = require("os");
-const axios = require("axios");
-
-const API_BASE = "https://eryxenx.agi.bd/api/alldl";
+const { downloadVideo } = require("sagor-video-downloader");
 
 module.exports = {
     config: {
         name: "autolink",
-        version: "3.0.0",
-        author: "EryXenX",
+        version: "2.0.0",
+        author: "𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍",
         countDown: 5,
         role: 0,
-        shortDescription: "Auto-download & send videos silently (no messages)",
+        shortDescription: "Auto-download & send videos",
         category: "media",
     },
 
@@ -20,91 +16,57 @@ module.exports = {
 
     onChat: async function ({ api, event }) {
         const threadID = event.threadID;
-        const messageID = event.messageID;
         const message = event.body || "";
 
         const linkMatches = message.match(/(https?:\/\/[^\s]+)/g);
         if (!linkMatches || linkMatches.length === 0) return;
 
         const uniqueLinks = [...new Set(linkMatches)];
-        const supportedLinks = uniqueLinks.filter(detectPlatform);
-        if (supportedLinks.length === 0) return;
 
-        api.setMessageReaction("⏳", messageID, () => {}, true);
-
-        let successCount = 0;
-        let failCount = 0;
-
-        for (const url of supportedLinks) {
-            const filePath = path.join(os.tmpdir(), `autolink_${Date.now()}_${Math.floor(Math.random() * 1e6)}.mp4`);
+        for (const url of uniqueLinks) {
+            let filePath = null;
 
             try {
-                const response = await axios.get(API_BASE, {
-                    params: { url },
-                    responseType: "stream",
-                    timeout: 150000
-                });
+                const result = await downloadVideo(url);
 
-                await new Promise((resolve, reject) => {
-                    const writer = fs.createWriteStream(filePath);
-                    response.data.pipe(writer);
-                    writer.on("finish", resolve);
-                    writer.on("error", reject);
-                });
+                filePath = result.filePath;
+
+                if (!filePath || !fs.existsSync(filePath)) {
+                    throw new Error("Video file not found");
+                }
 
                 const stats = fs.statSync(filePath);
                 const fileSizeInMB = stats.size / (1024 * 1024);
 
                 if (fileSizeInMB > 25) {
                     fs.unlinkSync(filePath);
-                    failCount++;
+                    filePath = null;
                     continue;
                 }
-
-                const title = extractTitleFromHeaders(response.headers);
 
                 await api.sendMessage(
                     {
                         body:
-`📥 ᴠɪᴅᴇᴏ ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ  
-━━━━━━━━━━━━━━━  
-🎬 ᴛɪᴛʟᴇ: ${title || "Video File"}  
-📦 sɪᴢᴇ: ${fileSizeInMB.toFixed(2)} MB  
-━━━━━━━━━━━━━━━`,
+`🎞️ 𝐇𝐞𝐫𝐞'𝐬 𝐘𝐨𝐮𝐫 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐞𝐝 𝐕𝐢𝐝𝐞𝐨 ✨
+𓆩♡𓆪 𝐄𝐧𝐣𝐨𝐲 𝐖𝐚𝐭𝐜𝐡𝐢𝐧𝐠! 🎬
+    👑 𝐁𝐨𝐭 𝐨𝐰𝐧𝐞𝐫 » ✰𝐓𝐀𝐇𝐀 𝐊𝐇𝐀𝐍 💫🪽`,
                         attachment: fs.createReadStream(filePath)
                     },
                     threadID,
-                    () => fs.unlinkSync(filePath)
+                    () => {
+                        if (filePath && fs.existsSync(filePath)) {
+                            fs.unlinkSync(filePath);
+                        }
+                    }
                 );
 
-                successCount++;
-
-            } catch (err) {
-                console.error(`[autolink] Failed for ${url}: ${err.message}`);
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-                failCount++;
+            } catch (error) {
+                if (filePath && fs.existsSync(filePath)) {
+                    try {
+                        fs.unlinkSync(filePath);
+                    } catch {}
+                }
             }
         }
-
-        const finalReaction =
-            successCount > 0 && failCount === 0 ? "✅" :
-            successCount > 0 ? "⚠️" : "❌";
-
-        api.setMessageReaction(finalReaction, messageID, () => {}, true);
     }
 };
-
-function detectPlatform(url) {
-    if (/instagram\.com/i.test(url)) return "instagram";
-    if (/tiktok\.com/i.test(url)) return "tiktok";
-    if (/facebook\.com|fb\.watch/i.test(url)) return "facebook";
-    if (/youtube\.com|youtu\.be/i.test(url)) return "youtube";
-    return null;
-}
-
-function extractTitleFromHeaders(headers) {
-    const disposition = headers["content-disposition"];
-    if (!disposition) return null;
-    const match = disposition.match(/filename="(.+?)\.mp4"/);
-    return match ? match[1].replace(/_/g, " ") : null;
-        }

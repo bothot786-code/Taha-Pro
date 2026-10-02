@@ -1,28 +1,24 @@
 module.exports = {
-  config: {
-    name: "out",
-    version: "2.0",
-    author: "MOHAMMAD AKASH",
-    countDown: 5,
-    role: 2,
-    shortDescription: "বটকে গ্রুপ থেকে বের করে দেওয়া",
-    longDescription: "এই কমান্ডের মাধ্যমে বটকে বর্তমান বা নির্দিষ্ট গ্রুপ থেকে বের করে দেওয়া হয়।",
-    category: "owner",
-    guide: {
-      en: "{pn} [threadID (optional)]",
-    },
-  },
+ config: {
+ name: "out",
+ author: "Siam Ahmed Saan",
+ role: 2, 
+ shortDescription: "Make the bot leave the group",
+ category: "admin",
+ guide: "{pn}"
+ },
 
-  onStart: async function ({ api, event, args }) {
-    const botID = api.getCurrentUserID();
-    const targetThread = args[0] || event.threadID;
+ onStart: async function ({ api, event }) {
+ const threadID = event.threadID;
 
-    try {
-      await api.sendMessage("👋 আলবিদা সবাই! আমি এখন গ্রুপ থেকে বের হচ্ছি...", targetThread);
-      await api.removeUserFromGroup(botID, targetThread);
-    } catch (error) {
-      console.error(error);
-      return api.sendMessage("❌ বের হতে পারলাম না! হয়তো আমি অ্যাডমিন না বা কোনো সমস্যা হয়েছে।", event.threadID);
-    }
-  },
+ // Check if it's a group chat
+ const threadInfo = await api.getThreadInfo(threadID);
+ if (!threadInfo.isGroup) {
+ return api.sendMessage("❌ This command can only be used in group chats.", threadID);
+ }
+
+ await api.sendMessage("👋 Goodbye! I'm leaving this group now...", threadID, () => {
+ api.removeUserFromGroup(api.getCurrentUserID(), threadID);
+ });
+ }
 };

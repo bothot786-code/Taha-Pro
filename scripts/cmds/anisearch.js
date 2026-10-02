@@ -1,70 +1,53 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-
-async function getStreamFromURL(url) {
-  const response = await axios.get(url, { responseType: 'stream' });
-  return response.data;
-}
-
-async function fetchTikTokVideos(query) {
-  try {
-    const response = await axios.get(`https://lyric-search-neon.vercel.app/kshitiz?keyword=${query}`);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}
+const axios = require("axios");
 
 module.exports = {
   config: {
     name: "anisearch",
-    aliases: [],
-    author: "Vex_kshitiz",
-    version: "1.0",
-    shortDescription: {
-      en: "get anime edit",
-    },
-    longDescription: {
-      en: "search for anime edits video",
-    },
-    category: "media",
-    guide: {
-      en: "{p}{n} [query]",
-    },
+    aliases: ["ani"],
+    version: "2.2",
+    author: "Anik Islam Sadik",
+    countDown: 3,
+    role: 0,
+    description: "Search and get Anime TikTok videos",
+    category: "ANIME & MEDIA",
+    guide: "{pn} <anime name>"
   },
-  onStart: async function ({ api, event, args }) {
-     api.setMessageReaction("✨", event.messageID, (err) => {}, true);
-    const query = args.join(' ');
-    const modifiedQuery = `${query} anime edit`;
 
-    const videos = await fetchTikTokVideos(modifiedQuery);
+  onStart: async function ({ api, event, message, args }) {
+    const { threadID, messageID } = event;
+    const query = args.join(" ");
+    if (!query) return message.reply("❌ Please provide an anime name to search.");
 
-    if (!videos || videos.length === 0) {
-      api.sendMessage({ body: `${query} not found.` }, event.threadID, event.messageID);
-      return;
-    }
+    api.setMessageReaction("✨", messageID, () => {}, true);
 
-    const selectedVideo = videos[Math.floor(Math.random() * videos.length)];
-    const videoUrl = selectedVideo.videoUrl;
-
-    if (!videoUrl) {
-      api.sendMessage({ body: 'Error: Video not found.' }, event.threadID, event.messageID);
-      return;
-    }
+    const API_URL = `https://xalman-apis.vercel.app/api/anisearch?q=${encodeURIComponent(query)}`;
 
     try {
-      const videoStream = await getStreamFromURL(videoUrl);
+      const res = await axios.get(API_URL, { timeout: 15000 });
+      const results = res.data.results;
 
-      await api.sendMessage({
-        body: ``,
-        attachment: videoStream,
-      }, event.threadID, event.messageID);
-    } catch (error) {
-      console.error(error);
-      api.sendMessage({ body: 'An error occurred while processing the video.\nPlease try again later.' }, event.threadID, event.messageID);
+      if (!results || results.length === 0) {
+        api.setMessageReaction("❌", messageID, () => {}, true);
+        return message.reply(`❌ No videos found for "${query}".`);
+      }
+
+      const video = results[0];
+      const stream = await global.utils.getStreamFromURL(video.video_url);
+
+      api.setMessageReaction("✅", messageID, () => {}, true);
+
+      const msg = `🎀 𝗔𝗡𝗜𝗠𝗘 𝗦𝗘𝗔𝗥𝗖𝗛 𝗥𝗘𝗦𝗨𝗟𝗧
+━━━━━━━━━━━━━━━━━━`;
+
+      return api.sendMessage({
+        body: msg,
+        attachment: stream
+      }, threadID, messageID);
+
+    } catch (e) {
+      console.error(e);
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return message.reply("❌ Error fetching video. Please try again.");
     }
-  },
+  }
 };

@@ -1,77 +1,86 @@
-const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-
-const mahmud = async () => {
-  const base = await axios.get(
-    "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json"
-  );
-  return base.data.mahmud;
-};
-
-/**
- * @author MahMUD
- * @author: do not delete it
- */
+const axios = require("axios");
+const { loadImage, createCanvas } = require("canvas");
 
 module.exports = {
   config: {
     name: "kiss",
-    version: "1.7",
-    author: "MahMUD",
+    version: "1.5",
+    author: "Amit Max ⚡",
     countDown: 5,
     role: 0,
-    longDescription: "Generate anime-style kiss image",
-    category: "love",
-    guide: "{pn} @mention"
+    shortDescription: "A fun kiss picture!",
+    longDescription: "A fun command to create a kiss picture with the given positions.",
+    category: "fun",
+    guide: "{pn} @mention or reply",
   },
 
-  onStart: async function ({ message, event, api }) {
-    try {
-      const obfuscatedAuthor = String.fromCharCode(77, 97, 104, 77, 85, 68);
-      if (module.exports.config.author.trim() !== obfuscatedAuthor) {
-        return api.sendMessage(
-          "❌ | You are not authorized to change the author name.",
-          event.threadID,
-          event.messageID
-        );
+  onStart: async function ({ event, api, usersData }) {
+    let mention = Object.keys(event.mentions)[0];
+    let targetID = mention || event.messageReply?.senderID;
+
+    if (!targetID)
+      return api.sendMessage("কাকে চুমু দিবে? ট্যাগ কর বা কারো রিপ্লাই দাও!", event.threadID, event.messageID);
+
+    const senderID = event.senderID;
+
+    const getAvatar = async (uid) => {
+      try {
+        const url = `https://graph.facebook.com/${uid}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+        const avatarPath = path.join(__dirname, `${uid}_avatar.png`);
+        const res = await axios.get(url, { responseType: "arraybuffer" });
+        fs.writeFileSync(avatarPath, res.data);
+        return avatarPath;
+      } catch (err) {
+        console.error(`Error fetching avatar for user ${uid}: ${err.message}`);
+        return "";
       }
+    };
 
-      const mention = Object.keys(event.mentions);
-      if (mention.length === 0) {
-        return message.reply("Please mention someone to kiss 💋");
-      }
+    const bg = await loadImage("https://i.imgur.com/VniSzhD.png"); 
+    const canvas = createCanvas(bg.width, bg.height);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bg, 0, 0);
 
-      const senderID = event.senderID;
-      const targetID = mention[0];
+    const senderAvatarPath = await getAvatar(senderID);
+    const targetAvatarPath = await getAvatar(targetID);
 
-      const base = await mahmud();
-      const apiURL = `${base}/api/kiss`;
+    const senderAvatar = await loadImage(senderAvatarPath);
+    const targetAvatar = await loadImage(targetAvatarPath);
 
-      const response = await axios.post(
-        apiURL,
-        { senderID, targetID },
-        { responseType: "arraybuffer" }
-      );
+    
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(340, 120, 60, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(targetAvatar, 280, 60, 120, 120);
+    ctx.restore();
 
-      const imgPath = path.join(
-        __dirname,
-        `kiss_${senderID}_${targetID}.png`
-      );
-      fs.writeFileSync(imgPath, Buffer.from(response.data, "binary"));
+    
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(500, 70, 60, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(senderAvatar, 440, 10, 120, 120);
+    ctx.restore();
 
-      message.reply({
-        body: "💋 Here’s your kiss image!",
-        attachment: fs.createReadStream(imgPath)
-      });
+    const output = path.join(__dirname, "kiss_output.png");
+    fs.writeFileSync(output, canvas.toBuffer("image/png"));
 
-      setTimeout(() => {
-        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-      }, 10000);
+    const senderName = await usersData.getName(senderID);
+    const targetName = event.mentions[mention] || (event.messageReply?.senderName || "Friend");
 
-    } catch (err) {
-      console.error("Error in kiss command:", err.message || err);
-      message.reply("🥹 error, contact MahMUD.");
-    }
+    api.sendMessage({
+      body: `❤️ Kiss time! \n${senderName} gave a kiss to ${targetName}! 💋`,
+      attachment: fs.createReadStream(output),
+      mentions: [{ tag: targetName, id: targetID }],
+    }, event.threadID, () => {
+      fs.unlinkSync(output);
+      fs.unlinkSync(senderAvatarPath);
+      fs.unlinkSync(targetAvatarPath);
+    }, event.messageID);
   }
 };

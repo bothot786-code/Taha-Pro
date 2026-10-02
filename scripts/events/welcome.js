@@ -8,8 +8,8 @@ const axios = require("axios");
 module.exports = {
   config: {
     name: "welcome",
-    version: "8.0",
-    author: "EryXenX",
+    version: "9.0",
+    author: "TAHA KHAN",
     category: "events"
   },
 
@@ -221,6 +221,9 @@ function fitText(ctx, text, maxPx, maxSize = 34, minSize = 14, bold = true) {
   return { text: t, size };
 }
 
+/* ========================================================================
+   ULTRA-STYLISH CYBER GLASSMORPHISM WELCOME CARD GENERATOR
+   ======================================================================== */
 async function createWelcomeCard({
   userName, threadName, memberCount,
   inviterName, newUserID, inviterID, threadID, api
@@ -250,303 +253,342 @@ async function createWelcomeCard({
   const safeInviter = readableText(inviterName);
   const safeGroup   = readableText(threadName);
 
-  ctx.fillStyle = '#09090f';
+  // 1. BASE BACKGROUND & NEON LIGHT ORBS
+  ctx.fillStyle = '#060710';
   ctx.fillRect(0, 0, W, H);
 
+  // Top-left Purple Ambient Orb
+  let g1 = ctx.createRadialGradient(150, 100, 0, 150, 100, 450);
+  g1.addColorStop(0, 'rgba(120, 40, 230, 0.35)');
+  g1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g1;
+  ctx.fillRect(0, 0, W, H);
+
+  // Bottom-right Cyan Ambient Orb
+  let g2 = ctx.createRadialGradient(1000, 500, 0, 1000, 500, 500);
+  g2.addColorStop(0, 'rgba(0, 220, 255, 0.28)');
+  g2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g2;
+  ctx.fillRect(0, 0, W, H);
+
+  // Center Pink Subtle Orb
+  let g3 = ctx.createRadialGradient(600, 315, 0, 600, 315, 300);
+  g3.addColorStop(0, 'rgba(255, 0, 120, 0.12)');
+  g3.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g3;
+  ctx.fillRect(0, 0, W, H);
+
+  // 2. CYBER GRID OVERLAY
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 40) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Floating Sparkles / Particles
   const rng = s => { let x = Math.sin(s) * 10000; return x - Math.floor(x); };
-  ctx.fillStyle = 'rgba(255,255,255,0.014)';
-  for (let i = 0; i < 280; i++) {
-    ctx.beginPath();
-    ctx.arc(rng(i * 2.3) * W, rng(i * 4.7) * H, rng(i * 7.1) * 1.3 + 0.2, 0, Math.PI * 2);
-    ctx.fill();
+  for (let i = 0; i < 180; i++) {
+    const px = rng(i * 1.7) * W;
+    const py = rng(i * 3.3) * H;
+    const pr = rng(i * 5.9) * 1.6 + 0.3;
+    const alpha = rng(i * 9.1) * 0.7 + 0.15;
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fill();
   }
 
-  const splitX = Math.round(W * 0.385);
-  const PAD    = 44;  
-
-  ctx.fillStyle = '#0d0d16';
-  ctx.fillRect(0, 0, splitX, H);
-
-  {
-    const g = ctx.createLinearGradient(splitX - 1, 0, splitX + 28, 0);
-    g.addColorStop(0, 'rgba(255,255,255,0.10)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(splitX - 1, 0, 30, H);
-  }
-
-  {
-    const lh = H * 0.52, ly = (H - lh) / 2;
-    const g  = ctx.createLinearGradient(0, ly, 0, ly + lh);
-    g.addColorStop(0,   'rgba(46,204,113,0)');
-    g.addColorStop(0.4, 'rgba(46,204,113,0.8)');
-    g.addColorStop(0.6, 'rgba(46,204,113,0.8)');
-    g.addColorStop(1,   'rgba(46,204,113,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, ly, 3, lh);
-  }
-
-  {
-    const rCX = splitX + (W - splitX) * 0.5;
-    const g   = ctx.createRadialGradient(rCX, H * 0.42, 0, rCX, H * 0.42, 380);
-    g.addColorStop(0, 'rgba(50,110,255,0.055)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(splitX, 0, W - splitX, H);
-  }
-
+  // Outer Border Box
   ctx.save();
-  ctx.shadowColor = 'rgba(80,160,255,0.28)'; ctx.shadowBlur = 22;
-  ctx.strokeStyle = 'rgba(80,160,255,0.2)';  ctx.lineWidth  = 2;
-  roundRect(ctx, 6, 6, W - 12, H - 12, 18);
+  ctx.shadowColor = 'rgba(0, 200, 255, 0.4)';
+  ctx.shadowBlur = 20;
+  ctx.strokeStyle = 'rgba(0, 220, 255, 0.25)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 10, 10, W - 20, H - 20, 24);
   ctx.stroke();
   ctx.restore();
 
-  const leftCX  = splitX / 2;
-  const avatarR = 115;
-  const avatarY = H / 2 - 18;
+  // 3. LEFT HERO PANEL (NEW MEMBER GLASS CARD)
+  const cardX = 35, cardY = 35, cardW = 420, cardH = 560;
 
+  // Glass Panel Base
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.font      = '600 17px "Segoe UI", Arial';
-  ctx.fillStyle = 'rgba(46,204,113,0.85)';
-  ctx.letterSpacing = '2px';
-  ctx.fillText('N E W   M E M B E R', leftCX, 50);
+  ctx.fillStyle = 'rgba(18, 20, 36, 0.65)';
+  roundRect(ctx, cardX, cardY, cardW, cardH, 20);
+  ctx.fill();
+
+  // Glass Stroke Border
+  const cardG = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
+  cardG.addColorStop(0, 'rgba(0, 220, 255, 0.5)');
+  cardG.addColorStop(0.5, 'rgba(255, 0, 120, 0.2)');
+  cardG.addColorStop(1, 'rgba(120, 40, 230, 0.5)');
+  ctx.strokeStyle = cardG;
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 20);
+  ctx.stroke();
+  ctx.restore();
+
+  // Left Section Content
+  const leftCX = cardX + cardW / 2;
+  const avatarY = cardY + 180;
+  const avatarR = 110;
+
+  // Welcome Pill Tag
+  {
+    const tagText = "★ NEW MEMBER ★";
+    ctx.save();
+    ctx.font = 'bold 13px "Segoe UI", Arial';
+    ctx.textAlign = 'center';
+    const tw = ctx.measureText(tagText).width + 30;
+    const th = 30, tx = leftCX - tw / 2, ty = cardY + 30;
+
+    ctx.fillStyle = 'rgba(0, 220, 255, 0.12)';
+    roundRect(ctx, tx, ty, tw, th, 15); ctx.fill();
+
+    ctx.strokeStyle = 'rgba(0, 220, 255, 0.6)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, tx, ty, tw, th, 15); ctx.stroke();
+
+    ctx.fillStyle = '#00f0ff';
+    ctx.fillText(tagText, leftCX, ty + 19);
+    ctx.restore();
+  }
+
+  // Multi-Ring Glowing Neon Avatar
+  ctx.save();
+  ctx.shadowColor = '#00f0ff'; ctx.shadowBlur = 35;
+  ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(leftCX, avatarY, avatarR + 10, 0, Math.PI * 2); ctx.stroke();
   ctx.restore();
 
   ctx.save();
-  ctx.shadowColor = 'rgba(46,204,113,0.6)'; ctx.shadowBlur = 32;
-  ctx.strokeStyle = 'rgba(46,204,113,0.9)'; ctx.lineWidth  = 3.5;
-  ctx.beginPath(); ctx.arc(leftCX, avatarY, avatarR + 8, 0, Math.PI * 2); ctx.stroke();
+  ctx.shadowColor = '#ff0078'; ctx.shadowBlur = 25;
+  ctx.strokeStyle = '#ff0078'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(leftCX, avatarY, avatarR + 18, -Math.PI * 0.4, Math.PI * 0.6); ctx.stroke();
   ctx.restore();
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(leftCX, avatarY, avatarR + 17, 0, Math.PI * 2); ctx.stroke();
-
+  // Avatar Image
   if (newUserImg) {
     drawCircleAvatar(ctx, newUserImg, leftCX, avatarY, avatarR);
   } else {
-    ctx.fillStyle = '#161628';
+    ctx.fillStyle = '#101426';
     ctx.beginPath(); ctx.arc(leftCX, avatarY, avatarR, 0, Math.PI * 2); ctx.fill();
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = `bold ${Math.round(avatarR * 0.7)}px Arial`;
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.fillText('👤', leftCX, avatarY);
     ctx.restore();
   }
 
+  // User Name Display
   {
-    const maxW = splitX - 32;
+    const maxW = cardW - 40;
     ctx.save();
     ctx.textAlign = 'center';
-    const { text, size } = fitText(ctx, safeUser, maxW, 34, 15);
-    ctx.font      = `bold ${size}px "Segoe UI", Arial`;
-    ctx.fillStyle = '#f0f0f8';
-    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 8;
-    ctx.fillText(text, leftCX, avatarY + avatarR + 40);
+    const { text, size } = fitText(ctx, safeUser, maxW, 32, 16);
+    ctx.font = `bold ${size}px "Segoe UI", Arial`;
+    
+    const textG = ctx.createLinearGradient(leftCX - maxW/2, 0, leftCX + maxW/2, 0);
+    textG.addColorStop(0, '#ffffff');
+    textG.addColorStop(1, '#d0e0ff');
+    ctx.fillStyle = textG;
+    ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 12;
+    ctx.fillText(text, leftCX, avatarY + avatarR + 45);
     ctx.restore();
   }
 
-  {
-    const dy = avatarY + avatarR + 57;
-    const dw = splitX * 0.44;
-    const g  = ctx.createLinearGradient(leftCX - dw / 2, 0, leftCX + dw / 2, 0);
-    g.addColorStop(0, 'transparent'); g.addColorStop(0.5, 'rgba(255,255,255,0.1)'); g.addColorStop(1, 'transparent');
-    ctx.strokeStyle = g; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(leftCX - dw / 2, dy); ctx.lineTo(leftCX + dw / 2, dy); ctx.stroke();
-  }
-
+  // Member Count Badge
   {
     const bText = `✦  ${ordinal(memberCount)} Member  ✦`;
     ctx.save();
-    ctx.font = 'bold 17px "Segoe UI", Arial';
+    ctx.font = 'bold 16px "Segoe UI", Arial';
     ctx.textAlign = 'center';
-    const bw = ctx.measureText(bText).width + 32;
-    const bh = 36, bx = leftCX - bw / 2, by = avatarY + avatarR + 70;
+    const bw = ctx.measureText(bText).width + 36;
+    const bh = 42, bx = leftCX - bw / 2, by = avatarY + avatarR + 80;
 
     const bg = ctx.createLinearGradient(bx, 0, bx + bw, 0);
-    bg.addColorStop(0, 'rgba(46,204,113,0.07)');
-    bg.addColorStop(0.5, 'rgba(46,204,113,0.20)');
-    bg.addColorStop(1, 'rgba(46,204,113,0.07)');
+    bg.addColorStop(0, 'rgba(255, 0, 120, 0.25)');
+    bg.addColorStop(0.5, 'rgba(120, 40, 230, 0.35)');
+    bg.addColorStop(1, 'rgba(0, 220, 255, 0.25)');
     ctx.fillStyle = bg;
-    roundRect(ctx, bx, by, bw, bh, 9); ctx.fill();
+    roundRect(ctx, bx, by, bw, bh, 12); ctx.fill();
 
-    ctx.strokeStyle = 'rgba(46,204,113,0.5)'; ctx.lineWidth = 1.5;
-    roundRect(ctx, bx, by, bw, bh, 9); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.lineWidth = 1;
+    roundRect(ctx, bx, by, bw, bh, 12); ctx.stroke();
 
-    ctx.fillStyle = 'rgba(46,204,113,0.92)';
-    ctx.fillText(bText, leftCX, by + 24);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5;
+    ctx.fillText(bText, leftCX, by + 26);
     ctx.restore();
   }
 
-  const rX     = splitX + PAD;
-  const rRight = W - PAD;         
-  const rW     = rRight - rX;     
+  // 4. RIGHT CONTENT SECTION
+  const rightX = 490, rightW = W - rightX - 35;
 
+  // Big Header "WELCOME TO"
   ctx.save();
   ctx.textAlign = 'left';
-  ctx.font      = 'bold 40px "Segoe UI", Arial';
-  const wGrad = ctx.createLinearGradient(rX, 0, rX + 500, 0);
-  wGrad.addColorStop(0, '#ffffff');
-  wGrad.addColorStop(1, 'rgba(255,255,255,0.55)');
-  ctx.fillStyle   = wGrad;
-  ctx.shadowColor = 'rgba(255,255,255,0.15)'; ctx.shadowBlur = 12;
-  ctx.fillText('Welcome To Our Group', rX, 90);
+  ctx.font = 'bold 46px "Segoe UI", Arial';
+  const headG = ctx.createLinearGradient(rightX, 0, rightX + rightW, 0);
+  headG.addColorStop(0, '#00f0ff');
+  headG.addColorStop(0.5, '#ffffff');
+  headG.addColorStop(1, '#ff0078');
+  ctx.fillStyle = headG;
+  ctx.shadowColor = 'rgba(0, 240, 255, 0.4)'; ctx.shadowBlur = 15;
+  ctx.fillText('WELCOME TO OUR', rightX, 95);
   ctx.restore();
 
+  // Decorative Accent Line
   ctx.save();
-  ctx.shadowColor = 'rgba(100,200,255,0.8)'; ctx.shadowBlur = 10;
-  ctx.strokeStyle = 'rgba(100,200,255,0.8)'; ctx.lineWidth  = 3;
-  ctx.beginPath(); ctx.moveTo(rX, 102); ctx.lineTo(rX + 130, 102); ctx.stroke();
+  const lineG = ctx.createLinearGradient(rightX, 0, rightX + 220, 0);
+  lineG.addColorStop(0, '#00f0ff');
+  lineG.addColorStop(1, 'transparent');
+  ctx.strokeStyle = lineG; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(rightX, 110); ctx.lineTo(rightX + 220, 110); ctx.stroke();
   ctx.restore();
 
-  const groupSecY = 155;
-  const gAvSize   = 90;   
-
+  // GROUP CARD (Frosted Glass Panel)
+  const groupY = 140, groupH = 120;
   ctx.save();
-  ctx.textAlign = 'left'; ctx.font = '500 12px "Segoe UI", Arial';
-  ctx.fillStyle = 'rgba(0,200,255,0.55)';
-  ctx.fillText('G R O U P', rX, groupSecY);
+  ctx.fillStyle = 'rgba(20, 24, 45, 0.55)';
+  roundRect(ctx, rightX, groupY, rightW, groupH, 16); ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; ctx.lineWidth = 1;
+  roundRect(ctx, rightX, groupY, rightW, groupH, 16); ctx.stroke();
   ctx.restore();
 
-  const gAx = rX, gAy = groupSecY + 14;
-
+  // Group Image & Name
+  const gAvSize = 80, gAx = rightX + 20, gAy = groupY + (groupH - gAvSize) / 2;
   if (groupImg) {
     ctx.save();
-    roundRect(ctx, gAx, gAy, gAvSize, gAvSize, 16);
-    ctx.clip();
+    roundRect(ctx, gAx, gAy, gAvSize, gAvSize, 14); ctx.clip();
     ctx.drawImage(groupImg, gAx, gAy, gAvSize, gAvSize);
     ctx.restore();
     ctx.save();
-    ctx.strokeStyle = 'rgba(0,200,255,0.5)'; ctx.lineWidth = 2.5;
-    roundRect(ctx, gAx, gAy, gAvSize, gAvSize, 16); ctx.stroke();
+    ctx.strokeStyle = 'rgba(0, 220, 255, 0.6)'; ctx.lineWidth = 2;
+    roundRect(ctx, gAx, gAy, gAvSize, gAvSize, 14); ctx.stroke();
     ctx.restore();
   } else {
-    ctx.fillStyle = '#161628';
-    roundRect(ctx, gAx, gAy, gAvSize, gAvSize, 16); ctx.fill();
+    ctx.fillStyle = '#12162d';
+    roundRect(ctx, gAx, gAy, gAvSize, gAvSize, 14); ctx.fill();
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = '44px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.font = '38px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fillText('🏠', gAx + gAvSize / 2, gAy + gAvSize / 2);
     ctx.restore();
   }
 
   {
-    const gTx  = gAx + gAvSize + 20;
-    const gTw  = rRight - gTx;          
-    const gTcY = gAy + gAvSize / 2;     
+    const gTx = gAx + gAvSize + 20;
+    const gTw = rightW - gAvSize - 40;
+    
+    ctx.save();
+    ctx.textAlign = 'left'; ctx.font = 'bold 12px "Segoe UI", Arial';
+    ctx.fillStyle = 'rgba(0, 220, 255, 0.8)';
+    ctx.fillText('COMMUNITY / GROUP', gTx, groupY + 35);
+    ctx.restore();
 
     ctx.save();
     ctx.textAlign = 'left';
-    const { text: gn, size: gs } = fitText(ctx, safeGroup, gTw, 34, 14);
-    ctx.font      = `bold ${gs}px "Segoe UI", Arial`;
-    ctx.fillStyle = '#e8e8f2';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
-    ctx.fillText(gn, gTx, gTcY + gs * 0.35);
+    const { text: gn, size: gs } = fitText(ctx, safeGroup, gTw, 28, 15);
+    ctx.font = `bold ${gs}px "Segoe UI", Arial`;
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 8;
+    ctx.fillText(gn, gTx, groupY + 75);
     ctx.restore();
   }
 
-  {
-    const sy = gAy + gAvSize + 22;
-    const g  = ctx.createLinearGradient(rX, 0, rRight, 0);
-    g.addColorStop(0, 'rgba(255,255,255,0.10)');
-    g.addColorStop(0.7, 'rgba(255,255,255,0.03)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.strokeStyle = g; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(rX, sy); ctx.lineTo(rRight, sy); ctx.stroke();
-  }
-
-  const invSecY  = gAy + gAvSize + 40;
-  const invAvR   = 52;  
-
+  // INVITER CARD (Frosted Glass Panel)
+  const invY = 280, invH = 110;
   ctx.save();
-  ctx.textAlign = 'left'; ctx.font = '500 12px "Segoe UI", Arial';
-  ctx.fillStyle = 'rgba(255,215,0,0.5)';
-  ctx.fillText('A D D E D   B Y', rX, invSecY);
+  ctx.fillStyle = 'rgba(20, 24, 45, 0.55)';
+  roundRect(ctx, rightX, invY, rightW, invH, 16); ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; ctx.lineWidth = 1;
+  roundRect(ctx, rightX, invY, rightW, invH, 16); ctx.stroke();
   ctx.restore();
 
-  const invAy  = invSecY + 14;
-  const invCX  = rX + invAvR;
-  const invCY  = invAy + invAvR;
+  // Inviter Avatar & Name
+  const invAvR = 36;
+  const invCX = rightX + 20 + invAvR;
+  const invCY = invY + invH / 2;
 
   if (inviterImg) {
     ctx.save();
-    ctx.shadowColor = 'rgba(255,215,0,0.4)'; ctx.shadowBlur = 18;
-    ctx.strokeStyle = 'rgba(255,215,0,0.65)'; ctx.lineWidth  = 2.5;
-    ctx.beginPath(); ctx.arc(invCX, invCY, invAvR + 4, 0, Math.PI * 2); ctx.stroke();
+    ctx.shadowColor = '#ff0078'; ctx.shadowBlur = 15;
+    ctx.strokeStyle = 'rgba(255, 0, 120, 0.8)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(invCX, invCY, invAvR + 3, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
     drawCircleAvatar(ctx, inviterImg, invCX, invCY, invAvR);
   } else {
-    ctx.fillStyle = '#161628';
+    ctx.fillStyle = '#12162d';
     ctx.beginPath(); ctx.arc(invCX, invCY, invAvR, 0, Math.PI * 2); ctx.fill();
     ctx.save();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = '34px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.font = '28px Arial'; ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.fillText('👤', invCX, invCY);
     ctx.restore();
   }
 
   {
     const iTx = invCX + invAvR + 20;
-    const iTw = rRight - iTx;
+    const iTw = rightW - (iTx - rightX) - 20;
+
+    ctx.save();
+    ctx.textAlign = 'left'; ctx.font = 'bold 12px "Segoe UI", Arial';
+    ctx.fillStyle = 'rgba(255, 0, 120, 0.85)';
+    ctx.fillText('ADDED BY', iTx, invY + 38);
+    ctx.restore();
+
     ctx.save();
     ctx.textAlign = 'left';
-    const { text: iname, size: is } = fitText(ctx, safeInviter, iTw, 34, 14);
-    ctx.font      = `bold ${is}px "Segoe UI", Arial`;
-    ctx.fillStyle = '#e8e8f2';
-    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 6;
-    ctx.fillText(iname, iTx, invCY + is * 0.35);
+    const { text: iname, size: is } = fitText(ctx, safeInviter, iTw, 26, 14);
+    ctx.font = `bold ${is}px "Segoe UI", Arial`;
+    ctx.fillStyle = '#f0f0f8';
+    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 8;
+    ctx.fillText(iname, iTx, invY + 72);
     ctx.restore();
   }
 
-  {
-    const blockY = invAy + invAvR * 2 + 32;
-    const blockH = H - blockY - 44;  
-
-    {
-      const g = ctx.createLinearGradient(rX, 0, rRight, 0);
-      g.addColorStop(0, 'rgba(255,255,255,0.10)');
-      g.addColorStop(0.7, 'rgba(255,255,255,0.03)');
-      g.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.strokeStyle = g; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(rX, blockY - 10); ctx.lineTo(rRight, blockY - 10); ctx.stroke();
-    }
-
-    const pillG = ctx.createLinearGradient(rX, blockY, rRight, blockY + blockH);
-    pillG.addColorStop(0, 'rgba(255,255,255,0.03)');
-    pillG.addColorStop(1, 'rgba(255,255,255,0.01)');
-    ctx.fillStyle = pillG;
-    roundRect(ctx, rX, blockY, rRight - rX, blockH, 14); ctx.fill();
-
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
-    roundRect(ctx, rX, blockY, rRight - rX, blockH, 14); ctx.stroke();
-    ctx.restore();
-
-    const cx = rX + (rRight - rX) / 2;
-    const cy = blockY + blockH / 2;
-
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 22px "Segoe UI", Arial';
-    const pGrad = ctx.createLinearGradient(cx - 120, 0, cx + 120, 0);
-    pGrad.addColorStop(0, 'rgba(255,255,255,0.55)');
-    pGrad.addColorStop(0.4, 'rgba(255,255,255,0.9)');
-    pGrad.addColorStop(0.65, 'rgba(100,200,255,1)');
-    pGrad.addColorStop(1, 'rgba(46,204,113,1)');
-    ctx.fillStyle = pGrad;
-    ctx.shadowColor = 'rgba(100,200,255,0.55)'; ctx.shadowBlur = 16;
-    ctx.fillText('Powered By EryXenX', cx, cy + 8);
-    ctx.restore();
-  }
-
+  // FOOTER BRANDING CARD ("POWERED BY TAHA KHAN")
+  const footY = 415, footH = 80;
   ctx.save();
-  ctx.textAlign = 'right'; ctx.font = '400 14px "Segoe UI", Arial';
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  ctx.fillText('Enjoy your stay ✨', W - 28, H - 20);
+  const footG = ctx.createLinearGradient(rightX, footY, rightX + rightW, footY + footH);
+  footG.addColorStop(0, 'rgba(120, 40, 230, 0.2)');
+  footG.addColorStop(1, 'rgba(0, 220, 255, 0.1)');
+  ctx.fillStyle = footG;
+  roundRect(ctx, rightX, footY, rightW, footH, 16); ctx.fill();
+
+  ctx.strokeStyle = 'rgba(120, 40, 230, 0.4)'; ctx.lineWidth = 1.5;
+  roundRect(ctx, rightX, footY, rightW, footH, 16); ctx.stroke();
   ctx.restore();
 
+  {
+    const cx = rightX + rightW / 2;
+    const cy = footY + footH / 2;
+
+    ctx.save();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = 'bold 22px "Segoe UI", Arial';
+    
+    const pGrad = ctx.createLinearGradient(cx - 150, 0, cx + 150, 0);
+    pGrad.addColorStop(0, '#00f0ff');
+    pGrad.addColorStop(0.5, '#ffffff');
+    pGrad.addColorStop(1, '#ff0078');
+    ctx.fillStyle = pGrad;
+    ctx.shadowColor = 'rgba(0, 240, 255, 0.6)'; ctx.shadowBlur = 12;
+    ctx.fillText('✦ POWERED BY TAHA KHAN ✦', cx, cy);
+    ctx.restore();
+  }
+
+  // Sub-footer subtle tagline
+  ctx.save();
+  ctx.textAlign = 'right'; ctx.font = 'italic 13px "Segoe UI", Arial';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.fillText('Enjoy your stay & make great memories ✨', W - 35, H - 25);
+  ctx.restore();
+
+  // Save Canvas Buffer
   const tempPath = path.join(__dirname, `temp_welcome_${Date.now()}.png`);
   await fs.writeFile(tempPath, canvas.toBuffer('image/png'));
   return tempPath;
